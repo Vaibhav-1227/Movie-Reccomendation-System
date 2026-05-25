@@ -27,16 +27,20 @@ from scipy.sparse.linalg import svds
 # ============================================================
 def _load_secret(key: str, default=None):
     try:
-        # Prefer Streamlit secrets when available
         val = st.secrets.get(key)
-        if val is not None:
-            return val
+        if val is not None: return val
+        val = st.secrets.get(key.lower())
+        if val is not None: return val
+        val = st.secrets.get(key.upper())
+        if val is not None: return val
     except Exception:
         pass
-    # Fall back to environment variables then to provided default
-    return os.environ.get(key.upper(), default)
+    val = os.environ.get(key)
+    if val is not None: return val
+    val = os.environ.get(key.upper())
+    if val is not None: return val
+    return os.environ.get(key.lower(), default)
 
-# Load sensitive values from `st.secrets` or environment variables.
 SMTP_SENDER_EMAIL  = _load_secret("smtp_sender_email")
 SMTP_APP_PASSWORD  = _load_secret("smtp_app_password")
 SMTP_SENDER_NAME   = _load_secret("smtp_sender_name")
@@ -452,10 +456,11 @@ def mood_label(mood): return MOOD_EMOJI.get(mood, f"🎬 {mood.capitalize()}")
 # ============================================================
 #  SECTION 5 — PAGE CONFIG & GLOBAL CSS
 # ============================================================
+_sidebar_state = "expanded" if st.session_state.get("auth_stage") == "app" else "collapsed"
 st.set_page_config(
     page_title="🎬 CineMatch — Movie Recommendation System",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state=_sidebar_state
 )
 
 st.markdown("""
@@ -476,7 +481,6 @@ html, body,
 #MainMenu { display: none !important; }
 footer    { display: none !important; }
 
-/* Sidebar */
 [data-testid="stSidebar"] {
     background: linear-gradient(160deg,#1a0a2e 0%,#16213e 60%,#0f3460 100%) !important;
     border-right: 1px solid rgba(139,92,246,0.2) !important;
@@ -496,7 +500,6 @@ footer    { display: none !important; }
 }
 [data-testid="stSidebar"] hr { border-color: rgba(139,92,246,0.2) !important; }
 
-/* Auth card layout & Glassmorphic container */
 .auth-card {
     background: rgba(25, 20, 50, 0.45) !important;
     backdrop-filter: blur(16px) saturate(180%) !important;
@@ -560,8 +563,7 @@ footer    { display: none !important; }
     text-align: center; margin-top: 10px;
 }
 .adult-block p { color: #5eead4 !important; font-size: 13px !important; margin: 0 !important; }
- 
-/* Step progress dots */
+
 .step-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 28px; }
 .step-dot {
     width: 8px; height: 8px; border-radius: 50%;
@@ -572,8 +574,7 @@ footer    { display: none !important; }
     width: 24px; border-radius: 4px;
 }
 .step-dot.done { background: rgba(139,92,246,0.5); }
- 
-/* Input styles */
+
 [data-testid="stMainBlockContainer"] input[type="text"],
 [data-testid="stMainBlockContainer"] input[type="email"],
 [data-testid="stMainBlockContainer"] input[type="password"],
@@ -597,8 +598,7 @@ footer    { display: none !important; }
     font-size: 13px !important; font-weight: 500 !important;
     color: rgba(196,181,253,0.8) !important;
 }
- 
-/* Button styles */
+
 [data-testid="stMainBlockContainer"] button {
     font-family: 'Outfit', sans-serif !important;
     font-weight: 600 !important; letter-spacing: 0.3px;
@@ -609,8 +609,7 @@ footer    { display: none !important; }
 [data-testid="stMainBlockContainer"] button:hover {
     opacity: 0.88 !important; transform: translateY(-1px) !important;
 }
- 
-/* Main app headings */
+
 [data-testid="stMainBlockContainer"] h1 {
     background: linear-gradient(90deg,#c4b5fd,#f9a8d4,#93c5fd);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -621,7 +620,7 @@ footer    { display: none !important; }
 [data-testid="stMainBlockContainer"] h3 { color: #c4b5fd !important; }
 [data-testid="stMainBlockContainer"] p,
 [data-testid="stMainBlockContainer"] span { color: rgba(210,200,255,0.88) !important; }
- 
+
 [data-testid="stSelectbox"]>div>div {
     background: rgba(255,255,255,0.05) !important;
     border: 1px solid rgba(139,92,246,0.3) !important;
@@ -634,8 +633,7 @@ footer    { display: none !important; }
     border-radius: 10px !important;
 }
 hr { border-color: rgba(139,92,246,0.2) !important; }
- 
-/* Badges */
+
 .hybrid-badge {
     display:inline-flex;align-items:center;gap:8px;
     background:rgba(20,184,166,0.15);border:1px solid rgba(20,184,166,0.4);
@@ -654,8 +652,7 @@ hr { border-color: rgba(139,92,246,0.2) !important; }
     border-radius:20px;padding:8px 18px;font-size:15px;font-weight:600;
     color:#c4b5fd;margin-bottom:14px;
 }
- 
-/* Movie cards */
+
 .movie-card {
     border-radius:14px;padding:14px;background:rgba(255,255,255,0.04);
     display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;
@@ -669,13 +666,13 @@ hr { border-color: rgba(139,92,246,0.2) !important; }
 .movie-title     { font-size:18px;font-weight:700;margin:0;color:#c4b5fd; }
 .meta-row        { font-size:13px;color:rgba(167,139,250,0.65);display:flex;gap:10px;flex-wrap:wrap; }
 .overview        { font-size:14px;color:rgba(210,200,255,0.82);line-height:1.5;margin-top:6px; }
- 
+
 .conf-wrap {
     background:rgba(255,255,255,0.08);border-radius:8px;height:6px;
     width:120px;overflow:hidden;display:inline-block;vertical-align:middle;
 }
 .conf-bar { height:100%;border-radius:8px;background:linear-gradient(90deg,#7c3aed,#a78bfa); }
- 
+
 .restricted-banner {
     background: rgba(239,68,68,0.08);
     border: 1px solid rgba(239,68,68,0.25);
@@ -686,14 +683,13 @@ hr { border-color: rgba(139,92,246,0.2) !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# Helper functions for dynamic theme rendering
 def get_base64_image(image_path: Path) -> str:
     import base64
     if image_path.exists():
         try:
             with open(image_path, "rb") as f:
                 return base64.b64encode(f.read()).decode()
-        except:
+        except Exception:
             pass
     return ""
 
@@ -705,20 +701,20 @@ def inject_theme_css(auth_mode=True):
             bg_css = f"""
             <style>
             [data-testid="stAppViewContainer"] {{
-                background-image: linear-gradient(135deg, rgba(7, 6, 15, 0.92) 0%, rgba(20, 10, 45, 0.78) 50%, rgba(7, 6, 15, 0.95) 100%), url("data:image/png;base64,{b64_str}") !important;
+                background-image: linear-gradient(135deg, rgba(7,6,15,0.92) 0%, rgba(20,10,45,0.78) 50%, rgba(7,6,15,0.95) 100%), url("data:image/png;base64,{b64_str}") !important;
                 background-size: cover !important;
                 background-position: center !important;
                 background-repeat: no-repeat !important;
                 background-attachment: fixed !important;
             }}
             div[data-testid="column"]:nth-of-type(2) {{
-                background: rgba(15, 10, 30, 0.65) !important;
+                background: rgba(15,10,30,0.65) !important;
                 backdrop-filter: blur(20px) !important;
                 -webkit-backdrop-filter: blur(20px) !important;
-                border: 1px solid rgba(139, 92, 246, 0.25) !important;
+                border: 1px solid rgba(139,92,246,0.25) !important;
                 border-radius: 24px !important;
                 padding: 40px !important;
-                box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 92, 246, 0.15) !important;
+                box-shadow: 0 15px 45px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.15) !important;
             }}
             </style>
             """
@@ -729,13 +725,13 @@ def inject_theme_css(auth_mode=True):
                 background: linear-gradient(135deg, #07060f 0%, #150b28 50%, #07060f 100%) !important;
             }
             div[data-testid="column"]:nth-of-type(2) {
-                background: rgba(15, 10, 30, 0.65) !important;
+                background: rgba(15,10,30,0.65) !important;
                 backdrop-filter: blur(20px) !important;
                 -webkit-backdrop-filter: blur(20px) !important;
-                border: 1px solid rgba(139, 92, 246, 0.25) !important;
+                border: 1px solid rgba(139,92,246,0.25) !important;
                 border-radius: 24px !important;
                 padding: 40px !important;
-                box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 92, 246, 0.15) !important;
+                box-shadow: 0 15px 45px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.15) !important;
             }
             </style>
             """
@@ -753,7 +749,7 @@ def inject_theme_css(auth_mode=True):
 #  SECTION 6 — SESSION STATE INIT
 # ============================================================
 _defaults = {
-    "auth_stage":     "email",   # email → otp → register/login → app
+    "auth_stage":     "email",
     "auth_email":     "",
     "auth_is_new":    False,
     "user":           None,
@@ -796,7 +792,7 @@ def fetch_movie_data(title):
                 "plot":     d.get("Plot","N/A"),
                 "rated":    d.get("Rated","N/A"),
             }
-    except:
+    except Exception:
         pass
     return {
         "poster":   ERROR_POSTER,
@@ -823,77 +819,95 @@ def load_recommender():
 movies, similarity = load_recommender()
 
 def get_content_scores(movie_title):
+    if movies.empty or not len(similarity):
+        return {}
     try:
         idx = movies[movies['title'].str.lower() == movie_title.lower()].index[0]
-    except:
+    except IndexError:
         return {}
     raw  = {movies.iloc[i].title: float(s) for i, s in enumerate(similarity[idx]) if i != idx}
     maxs = max(raw.values(), default=1) or 1
     return {t: s/maxs for t, s in raw.items()}
 
-@st.cache_data(ttl=3600, show_spinner=False)
+# FIX: Removed @st.cache_data from build_svd_model because numpy arrays + complex
+# objects don't always serialize cleanly with Streamlit's cache. Using st.cache_resource instead.
+@st.cache_resource(show_spinner=False)
 def build_svd_model():
     if not RATINGS_CSV.exists() or not ML_MOVIES_CSV.exists():
         return None
-    ratings   = pd.read_csv(RATINGS_CSV)
-    ml_movies = pd.read_csv(ML_MOVIES_CSV)
-    popular   = ratings.groupby("movieId").size()
-    popular   = popular[popular >= 10].index
-    ratings   = ratings[ratings["movieId"].isin(popular)]
-    user_ids  = ratings["userId"].unique().tolist()
-    movie_ids = ratings["movieId"].unique().tolist()
-    u2i = {u: i for i, u in enumerate(user_ids)}
-    m2i = {m: i for i, m in enumerate(movie_ids)}
-    rows_i = ratings["userId"].map(u2i).values
-    cols_i = ratings["movieId"].map(m2i).values
-    data_v = ratings["rating"].values.astype(float)
-    mat    = csr_matrix((data_v,(rows_i,cols_i)), shape=(len(user_ids),len(movie_ids)))
-    mat_d  = mat.toarray()
-    umean  = np.true_divide(mat_d.sum(1),(mat_d!=0).sum(1).clip(min=1))
-    mat_c  = mat_d.copy()
-    mask   = mat_d != 0
-    mat_c[mask] -= umean[mask.argmax(axis=1).reshape(-1,1).repeat(mat_d.shape[1],1)][mask]
-    k = min(50,len(user_ids)-1,len(movie_ids)-1)
-    U, sigma, Vt = svds(mat_c, k=k)
-    mid2title = {}
-    for _, row in ml_movies.iterrows():
-        clean = re.sub(r"\s*\(\d{4}\)\s*$","",str(row["title"])).strip()
-        mid2title[int(row["movieId"])] = clean
-    return U, sigma, Vt, user_ids, movie_ids, mid2title, m2i, umean
+    try:
+        ratings   = pd.read_csv(RATINGS_CSV)
+        ml_movies = pd.read_csv(ML_MOVIES_CSV)
+        popular   = ratings.groupby("movieId").size()
+        popular   = popular[popular >= 10].index
+        ratings   = ratings[ratings["movieId"].isin(popular)]
+        user_ids  = ratings["userId"].unique().tolist()
+        movie_ids = ratings["movieId"].unique().tolist()
+        u2i = {u: i for i, u in enumerate(user_ids)}
+        m2i = {m: i for i, m in enumerate(movie_ids)}
+        rows_i = ratings["userId"].map(u2i).values
+        cols_i = ratings["movieId"].map(m2i).values
+        data_v = ratings["rating"].values.astype(float)
+        mat    = csr_matrix((data_v,(rows_i,cols_i)), shape=(len(user_ids),len(movie_ids)))
+        mat_d  = mat.toarray()
+        umean  = np.true_divide(mat_d.sum(1),(mat_d!=0).sum(1).clip(min=1))
+        mat_c  = mat_d.copy()
+        mask   = mat_d != 0
+        mat_c[mask] -= umean.reshape(-1, 1).repeat(mat_d.shape[1], 1)[mask]
+        k = min(50, len(user_ids)-1, len(movie_ids)-1)
+        U, sigma, Vt = svds(mat_c, k=k)
+        mid2title = {}
+        for _, row in ml_movies.iterrows():
+            clean = re.sub(r"\s*\(\d{4}\)\s*$","",str(row["title"])).strip()
+            mid2title[int(row["movieId"])] = clean
+        return U, sigma, Vt, user_ids, movie_ids, mid2title, m2i, umean
+    except Exception as e:
+        st.warning(f"SVD model build failed: {e}")
+        return None
 
-@st.cache_data(ttl=3600, show_spinner=False)
 def get_item_based_collab_scores(movie_title, n=100):
+    # FIX: Removed @st.cache_data — depends on cache_resource object which can't be hashed
     model = build_svd_model()
-    if model is None: return {}
-    U, sigma, Vt, user_ids, movie_ids, mid2title, m2i, umean = model
-    ml_movies  = pd.read_csv(ML_MOVIES_CSV)
-    query      = re.sub(r"\s*\(\d{4}\)\s*$","",movie_title.lower().strip()).strip()
-    target_mid = None
-    for _, row in ml_movies.iterrows():
-        ml_clean = re.sub(r"\s*\(\d{4}\)\s*$","",str(row["title"])).strip().lower()
-        if query == ml_clean:
-            target_mid = int(row["movieId"]); break
-    if target_mid is None or target_mid not in m2i: return {}
-    item_matrix = Vt.T * sigma
-    target_idx  = m2i[target_mid]
-    target_vec  = item_matrix[target_idx]
-    target_norm = np.linalg.norm(target_vec)
-    if target_norm == 0: return {}
-    norms = np.linalg.norm(item_matrix, axis=1).clip(min=1e-10)
-    sims  = item_matrix.dot(target_vec) / (norms * target_norm)
-    top_indices = np.argsort(sims)[::-1]
-    scores = {}
-    for idx in top_indices:
-        if idx == target_idx: continue
-        mid   = movie_ids[idx]
-        title = mid2title.get(mid)
-        if title: scores[title] = float(sims[idx])
-        if len(scores) >= n: break
-    if scores:
-        mn, mx = min(scores.values()), max(scores.values())
-        rng    = (mx-mn) or 1
-        scores = {t:(s-mn)/rng for t,s in scores.items()}
-    return scores
+    if model is None:
+        return {}
+    try:
+        U, sigma, Vt, user_ids, movie_ids, mid2title, m2i, umean = model
+        ml_movies  = pd.read_csv(ML_MOVIES_CSV)
+        query      = re.sub(r"\s*\(\d{4}\)\s*$","",movie_title.lower().strip()).strip()
+        target_mid = None
+        for _, row in ml_movies.iterrows():
+            ml_clean = re.sub(r"\s*\(\d{4}\)\s*$","",str(row["title"])).strip().lower()
+            if query == ml_clean:
+                target_mid = int(row["movieId"]); break
+        if target_mid is None or target_mid not in m2i:
+            return {}
+        item_matrix = Vt.T * sigma
+        target_idx  = m2i[target_mid]
+        target_vec  = item_matrix[target_idx]
+        target_norm = np.linalg.norm(target_vec)
+        if target_norm == 0:
+            return {}
+        norms = np.linalg.norm(item_matrix, axis=1).clip(min=1e-10)
+        sims  = item_matrix.dot(target_vec) / (norms * target_norm)
+        top_indices = np.argsort(sims)[::-1]
+        scores = {}
+        for idx in top_indices:
+            if idx == target_idx:
+                continue
+            mid   = movie_ids[idx]
+            title = mid2title.get(mid)
+            if title:
+                scores[title] = float(sims[idx])
+            if len(scores) >= n:
+                break
+        if scores:
+            mn, mx = min(scores.values()), max(scores.values())
+            rng    = (mx-mn) or 1
+            scores = {t:(s-mn)/rng for t,s in scores.items()}
+        return scores
+    except Exception as e:
+        st.warning(f"Collaborative scoring failed: {e}")
+        return {}
 
 def fuzzy_match_titles(collab_scores, content_titles):
     matched       = {}
@@ -901,7 +915,8 @@ def fuzzy_match_titles(collab_scores, content_titles):
     for cl_title, score in collab_scores.items():
         cl_lower = cl_title.lower()
         if cl_lower in content_lower:
-            matched[content_lower[cl_lower]] = score; continue
+            matched[content_lower[cl_lower]] = score
+            continue
         for ct_lower, ct_orig in content_lower.items():
             if cl_lower in ct_lower or ct_lower in cl_lower:
                 if ct_orig not in matched:
@@ -911,7 +926,8 @@ def fuzzy_match_titles(collab_scores, content_titles):
 
 def get_hybrid_recommendations(movie_title, n=5, alpha=0.5):
     content_scores = get_content_scores(movie_title)
-    if not content_scores: return [], [], "no_data"
+    if not content_scores:
+        return [], [], "no_data"
     content_titles = list(content_scores.keys())
     raw_collab     = get_item_based_collab_scores(movie_title, n=200)
     collab_scores  = fuzzy_match_titles(raw_collab, content_titles)
@@ -925,23 +941,47 @@ def get_hybrid_recommendations(movie_title, n=5, alpha=0.5):
     details = [fetch_movie_data(t) for t in top]
     return top, details, mode
 
+# FIX: Removed nltk PorterStemmer dependency entirely.
+# Simple substring genre matching works reliably without extra library installs.
 def recommend_by_emotion(emotion_text, n=5):
     mood, genre, confidence = detect_mood(emotion_text)
-    all_titles = list(movies['title'].values)
-    random.shuffle(all_titles)
+
+    if movies.empty:
+        return [], [], mood, genre, confidence
+
+    genre_lower = genre.lower()
+
+    # Try matching genre in tags (case-insensitive substring)
+    matched_movies = movies[movies['tags'].str.lower().str.contains(genre_lower, na=False)]
+
+    # Fallback: try partial stems (e.g. "comedy" -> "comed", "action" -> "action")
+    if len(matched_movies) < n and len(genre_lower) > 4:
+        stem = genre_lower[:max(4, len(genre_lower)-2)]
+        matched_movies = movies[movies['tags'].str.lower().str.contains(stem, na=False)]
+
+    # Fallback: drama
+    if len(matched_movies) < n:
+        matched_movies = movies[movies['tags'].str.lower().str.contains('drama', na=False)]
+
+    # Ultimate fallback
+    if matched_movies.empty:
+        matched_movies = movies
+
+    sample_size = min(len(matched_movies), n * 3)
+    sampled_df  = matched_movies.sample(
+        n=sample_size,
+        random_state=random.randint(1, 10000)
+    )
+
     filtered = []
-    for movie in all_titles[:60]:
-        det = fetch_movie_data(movie)
-        if genre.lower() in det.get("genre","").lower():
-            filtered.append((movie, det))
-        if len(filtered) >= n: break
-    if len(filtered) < 2:
-        for movie in all_titles[60:120]:
-            det = fetch_movie_data(movie)
-            if "drama" in det.get("genre","").lower():
-                filtered.append((movie, det))
-            if len(filtered) >= n: break
-    return [x[0] for x in filtered],[x[1] for x in filtered],mood,genre,confidence
+    for _, row in sampled_df.iterrows():
+        title = row['title']
+        det   = fetch_movie_data(title)
+        filtered.append((title, det))
+        if len(filtered) >= n:
+            break
+
+    return [x[0] for x in filtered], [x[1] for x in filtered], mood, genre, confidence
 
 # ============================================================
 #  SECTION 9 — AUTH PAGES
@@ -979,36 +1019,45 @@ def page_email():
             unsafe_allow_html=True
         )
 
-        # FIX: renamed local variable from 'email' to 'email_input'
-        # to avoid shadowing the stdlib 'email' module imported at the top
         email_input = st.text_input(
             "Email Address",
             placeholder="you@example.com",
             key="email_field"
         )
 
+        # FIX: Show error/warning BEFORE the button so it persists across reruns
         if st.session_state.otp_send_error:
-            st.error(st.session_state.otp_send_error)
-            st.session_state.otp_send_error = ""
+            st.warning(st.session_state.otp_send_error)
 
         if st.button("Send OTP →", use_container_width=True):
             if not email_input or "@" not in email_input:
                 st.error("Please enter a valid email address.")
             else:
-                clean_email = email_input.strip()
-                otp     = generate_otp()
-                purpose = "register" if not email_exists(clean_email) else "login"
+                clean_email  = email_input.strip()
+                is_new_user  = not email_exists(clean_email)
+                otp          = generate_otp()
+                purpose      = "register" if is_new_user else "login"
+
+                print(f"\n🔑 [CineMatch Dev/Debug] OTP for {clean_email} ({purpose}) is: {otp}\n")
+
+                save_otp(clean_email, otp)
                 ok, msg = send_otp_email(clean_email, otp, purpose=purpose)
-                if ok:
-                    save_otp(clean_email, otp)
-                    st.session_state.auth_email  = clean_email
-                    st.session_state.auth_is_new = not email_exists(clean_email)
-                    st.session_state.auth_stage  = "otp"
-                    st.session_state.otp_sent    = True
-                    st.rerun()
+
+                st.session_state.auth_email  = clean_email
+                st.session_state.auth_is_new = is_new_user
+                st.session_state.otp_sent    = True
+
+                if not ok:
+                    st.session_state.otp_send_error = (
+                        f"⚠️ **Email delivery failed:** {msg}\n\n"
+                        f"**Local/Dev Fallback Active:** OTP printed to terminal. "
+                        f"Check your console, copy the 6-digit code and enter it below."
+                    )
                 else:
-                    st.session_state.otp_send_error = msg
-                    st.rerun()
+                    st.session_state.otp_send_error = ""
+
+                st.session_state.auth_stage = "otp"
+                st.rerun()
 
 def page_otp():
     _, col, _ = st.columns([1, 2, 1])
@@ -1028,6 +1077,10 @@ def page_otp():
             unsafe_allow_html=True
         )
 
+        # FIX: Show persistent delivery-failure warning on OTP page too
+        if st.session_state.otp_send_error:
+            st.warning(st.session_state.otp_send_error)
+
         otp_input = st.text_input(
             "Enter 6-Digit OTP",
             placeholder="● ● ● ● ● ●",
@@ -1038,8 +1091,9 @@ def page_otp():
         c1, c2 = st.columns(2)
         with c1:
             if st.button("← Back", use_container_width=True):
-                st.session_state.auth_stage = "email"
-                st.session_state.otp_sent   = False
+                st.session_state.auth_stage     = "email"
+                st.session_state.otp_sent       = False
+                st.session_state.otp_send_error = ""
                 st.rerun()
         with c2:
             if st.button("Verify ✓", use_container_width=True):
@@ -1048,7 +1102,10 @@ def page_otp():
                 else:
                     ok, msg = verify_otp(st.session_state.auth_email, otp_input)
                     if ok:
-                        st.session_state.auth_stage = "register" if st.session_state.auth_is_new else "login"
+                        st.session_state.otp_send_error = ""
+                        st.session_state.auth_stage = (
+                            "register" if st.session_state.auth_is_new else "login"
+                        )
                         st.rerun()
                     else:
                         st.error(msg)
@@ -1060,12 +1117,18 @@ def page_otp():
         )
         if st.button("Resend OTP", use_container_width=True):
             otp = generate_otp()
+            print(f"\n🔑 [CineMatch Dev/Debug] Resent OTP for {st.session_state.auth_email}: {otp}\n")
+            save_otp(st.session_state.auth_email, otp)
             ok, msg = send_otp_email(st.session_state.auth_email, otp)
             if ok:
-                save_otp(st.session_state.auth_email, otp)
+                st.session_state.otp_send_error = ""
                 st.success("A new OTP has been sent!")
             else:
-                st.error(msg)
+                st.session_state.otp_send_error = (
+                    f"⚠️ **Email delivery failed:** {msg}\n\n"
+                    f"OTP printed to terminal/console as fallback."
+                )
+                st.warning(st.session_state.otp_send_error)
 
 def page_register():
     _, col, _ = st.columns([1, 2, 1])
@@ -1113,7 +1176,7 @@ def page_register():
                 )
 
         if st.button("Create Account 🎬", use_container_width=True):
-            if not username:
+            if not username.strip():
                 st.error("Please enter a username.")
             elif len(password) < 6:
                 st.error("Password must be at least 6 characters.")
@@ -1163,7 +1226,8 @@ def page_login():
 
         st.markdown("---")
         if st.button("← Use a different email", use_container_width=True):
-            st.session_state.auth_stage = "email"
+            st.session_state.auth_stage     = "email"
+            st.session_state.otp_send_error = ""
             st.rerun()
 
 # ============================================================
@@ -1203,53 +1267,72 @@ def page_app():
     is_adult = bool(ud.get("is_adult", False))
     user_age = get_user_age(user) if user else None
 
-    # Sidebar
-    st.sidebar.header("Account")
-    st.sidebar.success(f"👤 **{user}**")
-    age_str = f"{user_age} years" if user_age else "?"
-    st.sidebar.caption(f"🎂 Age: {age_str} | {'✅ 18+' if is_adult else '🔒 Under 18'}")
-    if st.sidebar.button("Logout"):
-        for k in list(st.session_state.keys()):
-            del st.session_state[k]
-        st.rerun()
+    # ── Sidebar ──────────────────────────────────────────────
+    with st.sidebar:
+        # --- Account block ---
+        st.markdown("### 👤 Account")
+        st.success(f"**{user}**")
+        age_str = f"{user_age} yrs" if user_age else "?"
+        st.caption(f"🎂 {age_str}  |  {'✅ Adult (18+)' if is_adult else '🔒 Under 18'}")
 
-    st.sidebar.markdown("---")
-    st.sidebar.header("Your Watchlist")
-    wl = get_watchlist(user)
-    if wl:
-        for m in wl:
-            st.sidebar.write(m)
-            rk = "sw_" + hashlib.sha1(m.encode()).hexdigest()
-            st.sidebar.button("Remove", key=rk, on_click=cb_remove, args=(user, m))
-    else:
-        st.sidebar.info("Your watchlist is empty.")
+        # Logout — clear state THEN rerun
+        if st.button("🚪 Logout", use_container_width=True, key="logout_btn"):
+            keys_to_del = list(st.session_state.keys())
+            for k in keys_to_del:
+                del st.session_state[k]
+            st.rerun()
 
-    st.sidebar.markdown("---")
-    st.sidebar.header("Settings")
-    num_recs       = st.sidebar.slider("Number of recommendations", 1, 10, 5)
-    show_posters   = st.sidebar.checkbox("Show posters",  value=True)
-    show_overviews = st.sidebar.checkbox("Show overview", value=True)
-    show_metadata  = st.sidebar.checkbox("Show metadata", value=True)
+        st.markdown("---")
 
-    st.sidebar.markdown("---")
-    st.sidebar.header("🔀 Hybrid Settings")
-    hybrid_alpha = st.sidebar.slider(
-        "Content  ←————→  Collaborative",
-        min_value=0.0, max_value=1.0,
-        value=st.session_state.hybrid_alpha, step=0.1,
-        help="1.0 = content-based only | 0.5 = balanced | 0.0 = collaborative only"
-    )
-    st.session_state.hybrid_alpha = hybrid_alpha
-    st.sidebar.caption(
-        f"📄 Content: **{int(hybrid_alpha*100)}%**  |  "
-        f"👥 Collaborative: **{100-int(hybrid_alpha*100)}%**"
-    )
+        # --- Watchlist block ---
+        st.markdown("### 🎬 Your Watchlist")
+        wl = get_watchlist(user)
+        if wl:
+            for m in wl:
+                # Two mini-columns: title | remove button
+                c_title, c_btn = st.columns([3, 1])
+                with c_title:
+                    st.markdown(
+                        f"<span style='font-size:13px;color:rgba(210,200,255,0.9)'>{m[:30]}</span>",
+                        unsafe_allow_html=True
+                    )
+                with c_btn:
+                    rk = "sw_" + hashlib.sha1(m.encode()).hexdigest()
+                    st.button("✕", key=rk, on_click=cb_remove, args=(user, m),
+                              help=f"Remove {m}")
+        else:
+            st.info("Your watchlist is empty.")
 
-    if RATINGS_CSV.exists():
-        ml_ratings, _ = load_movielens()
-        st.sidebar.success(f"✅ MovieLens: {len(ml_ratings):,} ratings loaded")
-    else:
-        st.sidebar.warning("⏳ Loading MovieLens data...")
+        st.markdown("---")
+
+        # --- Settings block ---
+        st.markdown("### ⚙️ Settings")
+        num_recs       = st.slider("Recommendations", 1, 10, 5)
+        show_posters   = st.checkbox("Show posters",  value=True)
+        show_overviews = st.checkbox("Show overview", value=True)
+        show_metadata  = st.checkbox("Show metadata", value=True)
+
+        st.markdown("---")
+
+        # --- Hybrid Settings ---
+        st.markdown("### 🔀 Hybrid Settings")
+        hybrid_alpha = st.slider(
+            "Content ←→ Collaborative",
+            min_value=0.0, max_value=1.0,
+            value=st.session_state.hybrid_alpha, step=0.1,
+            help="1.0 = content-based only | 0.5 = balanced | 0.0 = collaborative only"
+        )
+        st.session_state.hybrid_alpha = hybrid_alpha
+        st.caption(
+            f"📄 Content: **{int(hybrid_alpha*100)}%**  |  "
+            f"👥 Collab: **{100-int(hybrid_alpha*100)}%**"
+        )
+
+        if RATINGS_CSV.exists():
+            ml_ratings, _ = load_movielens()
+            st.success(f"✅ MovieLens: {len(ml_ratings):,} ratings")
+        else:
+            st.warning("⏳ MovieLens data not found...")
 
     # Main content
     st.title("🎬 CineMatch — Movie Recommendation System")
@@ -1263,9 +1346,9 @@ def page_app():
 
     st.write("Pick a movie **or** describe your mood to get recommendations.")
 
-    options  = movies['title'].values if not movies.empty else []
-    query    = st.text_input("🔍 Search movie")
-    emotion  = st.text_input(
+    options = movies['title'].values if not movies.empty else []
+    query   = st.text_input("🔍 Search movie")
+    emotion = st.text_input(
         "💬 How are you feeling?",
         placeholder="e.g. I am sad, feeling depressed, want some action..."
     )
@@ -1313,12 +1396,11 @@ def page_app():
 
     col_main, col_side = st.columns([3, 1])
 
-    # Right panel — selected movie details
     with col_side:
         st.subheader("Selected Movie")
         if selected:
-            det     = fetch_movie_data(selected)
-            min_age = min_age_for_rating(det.get("rated","N/A"))
+            det      = fetch_movie_data(selected)
+            min_age  = min_age_for_rating(det.get("rated","N/A"))
             is_restr = not is_adult and min_age >= 17
 
             if show_posters:
@@ -1356,7 +1438,6 @@ def page_app():
                     )
                 st.session_state.wl_flash = None
 
-    # Left panel — recommendations
     with col_main:
         if rec_btn and selected:
             with st.spinner("Finding hybrid recommendations..."):
@@ -1381,7 +1462,6 @@ def page_app():
                 st.session_state.mood_titles    = names
                 st.session_state.rec_mode       = "mood"
 
-        # Mode badge
         rec_mode = st.session_state.rec_mode
         if rec_mode == "hybrid":
             alpha_pct = int(st.session_state.hybrid_alpha * 100)
@@ -1457,10 +1537,8 @@ def page_app():
 # ============================================================
 #  SECTION 12 — PAGE ROUTER
 # ============================================================
-stage = st.session_state.auth_stage
-
-# Inject custom background based on stage
-is_auth = stage in ["email", "otp", "register", "login"]
+stage    = st.session_state.auth_stage
+is_auth  = stage in ["email", "otp", "register", "login"]
 inject_theme_css(auth_mode=is_auth)
 
 if stage == "email":

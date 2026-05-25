@@ -1,7 +1,33 @@
+# SECRETS - kabhi push mat karna
 .streamlit/secrets.toml
+.env
+*.env
+
+# DATABASE
 movie_app.db
+*.db
+
+# LARGE ML FILES
+similarity.pkl
+movies.pkl
+*.pkl
+
+# DATASET
+movielens/
+
+# PYTHON CACHE
 __pycache__/
 *.pyc
-*.pkl
-.env
+*.pyo
+
+# VIRTUAL ENV
+venv/
+env/
+.venv/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# COLLAGE IMAGE (optional)
+movie_collage.png
