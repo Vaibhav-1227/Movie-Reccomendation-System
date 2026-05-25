@@ -1,0 +1,11 @@
+credentials:
+  usernames:
+    user1:
+      email: user1@gmail.com
+      name: User One
+      password: "pbkdf2:sha256:260000$abc123$..."  # Replace with hashed password
+
+cookie:
+  name: movie_recommender_cookie
+  key: some_random_key
+  expiry_days: 30

@@ -1,0 +1,58 @@
+📦 Concept of Packet Switching and Its Significance in Data Communication – Hinglish Explanation
+🔀 What is Packet Switching?
+Packet Switching ek technique hai jisme data ko chhote-chhote packets mein divide karke network ke through bheja jaata hai, instead of sending the whole file as a single block.
+
+🧠 Definition:
+"Packet switching is a method of data transmission in which messages are broken into smaller units called packets, which are sent independently over the network and reassembled at the destination."
+
+🧩 How Packet Switching Works – Step by Step
+Data Breakdown:
+
+Large file ya message ko small equal-sized packets me tod diya jaata hai (usually <1500 bytes).
+
+Add Headers:
+
+Har packet me source address, destination address, sequence number, and error checking info hota hai.
+
+Routing:
+
+Packets independently travel karte hain over different routes to reach destination.
+
+Reassembly:
+
+Receiver side pe, packets ko sequence number ke basis pe jod kar original data banaya jaata hai.
+
+Error Handling:
+
+Agar koi packet missing ho ya corrupt ho, receiver request karta hai resend ke liye.
+
+🕸️ Types of Packet Switching
+Type	Description
+Datagram Packet Switching	Har packet apna independent route choose karta hai. (Like IP packets)
+Virtual Circuit Packet Switching	Ek logical path (virtual circuit) pehle banaya jaata hai, fir packets usi path se jaate hain (Like TCP)
+
+🎯 Significance / Advantages of Packet Switching
+✅ 1. Efficient Use of Bandwidth
+Packets kisi bhi available route se jaa sakte hain.
+
+Network idle nahi rehta – more efficient than circuit switching.
+
+✅ 2. Scalable and Flexible
+Packet switching internet jaisi large networks ke liye perfect hai.
+
+New devices asaani se add kiye ja sakte hain.
+
+✅ 3. No Need for Dedicated Path
+Unlike circuit switching (like in telephone), isme har communication ke liye dedicated path fix nahi hota.
+
+✅ 4. Fault Tolerance
+Agar ek route fail ho jaaye, packet alternate route se pahunch sakta hai.
+
+✅ 5. Cost-Effective
+Kyunki network share kiya jaata hai, per user cost kam hoti hai.
+
+❌ Disadvantages
+Drawback	Reason
+Packet Loss	Congestion ya errors ke wajah se kuch packets drop ho sakte hain.
+Latency and Jitter	Different routes lene ki wajah se packets different times pe pahunchte hain.
+Need for Reassembly	Receiver ko packets ko sahi order me jodna padta hai.
