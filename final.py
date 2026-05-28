@@ -25,21 +25,18 @@ from scipy.sparse.linalg import svds
 # ============================================================
 #  GMAIL SMTP CONFIG
 # ============================================================
+
 def _load_secret(key: str, default=None):
-    try:
-        val = st.secrets.get(key)
-        if val is not None: return val
-        val = st.secrets.get(key.lower())
-        if val is not None: return val
-        val = st.secrets.get(key.upper())
-        if val is not None: return val
-    except Exception:
-        pass
-    val = os.environ.get(key)
-    if val is not None: return val
-    val = os.environ.get(key.upper())
-    if val is not None: return val
-    return os.environ.get(key.lower(), default)
+    val = st.secrets.get(key)
+    if val is not None:
+        return val
+    val = st.secrets.get(key.lower())
+    if val is not None:
+        return val
+    val = st.secrets.get(key.upper())
+    if val is not None:
+        return val
+    return default
 
 SMTP_SENDER_EMAIL  = _load_secret("smtp_sender_email")
 SMTP_APP_PASSWORD  = _load_secret("smtp_app_password")
