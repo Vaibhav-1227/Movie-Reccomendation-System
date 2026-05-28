@@ -1,5 +1,6 @@
 # SECRETS - kabhi push mat karna
 .streamlit/secrets.toml
+.streamlit/secrets.example.toml
 .env
 *.env
 
